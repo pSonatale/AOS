@@ -49,9 +49,15 @@
             android:textColor="@color/st_gray1"
             android:textSize="14dp" />
 
+        <TextView
+            android:id="@+id/tv_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="-53dp"
