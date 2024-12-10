@@ -6,9 +6,9 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
 
-        speechRecognizer.setRecognitionListener(object : RecognitionListener{
+        speechRecognizer.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {
                 Toast.makeText(this@MainActivity, "음성 인식을 시작합니다.", Toast.LENGTH_SHORT).show()
             }
@@ -54,10 +54,24 @@ class MainActivity : AppCompatActivity() {
 
             override fun onEndOfSpeech() {
                 Toast.makeText(this@MainActivity, "음성 입력이 끝났습니다.", Toast.LENGTH_SHORT).show()
+                binding.ivRecordOff.visibility = View.VISIBLE
+                binding.ivRecordOn.visibility = View.INVISIBLE
             }
 
             override fun onError(error: Int) {
-                Toast.makeText(this@MainActivity, "오류 발생: $error", Toast.LENGTH_SHORT).show()
+                val message: String = when (error) {
+                    SpeechRecognizer.ERROR_AUDIO -> "오디오 에러"
+                    SpeechRecognizer.ERROR_CLIENT -> "클라이언트 에러"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "퍼미션 없음"
+                    SpeechRecognizer.ERROR_NETWORK -> "네트워크 에러"
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "네트워크 타임아웃"
+                    SpeechRecognizer.ERROR_NO_MATCH -> "찾을 수 없음"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RECOGNIZER 가 바쁨"
+                    SpeechRecognizer.ERROR_SERVER -> "서버 에러"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "시간 초과"
+                    else -> "알 수 없는 오류"
+                }
+                Toast.makeText(this@MainActivity, "Error : $message", Toast.LENGTH_SHORT).show()
             }
 
             override fun onResults(results: Bundle?) {
@@ -76,20 +90,27 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        binding.ivRecord.setOnClickListener {
+        binding.ivRecordOff.setOnClickListener {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
                 putExtra(RecognizerIntent.EXTRA_PROMPT, "말씀하세요...")
             }
             speechRecognizer.startListening(intent)
+
+            binding.ivRecordOff.visibility = View.INVISIBLE
+            binding.ivRecordOn.visibility = View.VISIBLE
         }
     }
 
     // 음성 권한 처리
     private fun checkRecordPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.RECORD_AUDIO),

@@ -57,11 +57,22 @@
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/iv_record"
+        android:id="@+id/iv_record_off"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="-53dp"
         android:src="@drawable/record_off"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/layout_info" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_record_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-93dp"
+        android:src="@drawable/record_on"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/layout_info" />
