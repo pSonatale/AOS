@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -13,6 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.sonatale.databinding.ActivityMainBinding
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -20,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var resultTextView: TextView
+
+    private var translateText: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,8 +82,10 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                Log.d("SpeechText", matches?.get(0).toString())
+                postTranslate(matches?.get(0))
                 if (!matches.isNullOrEmpty()) {
-                    resultTextView.text = matches[0] // 첫 번째 결과 표시
+                    resultTextView.text = translateText // 첫 번째 결과 표시
                 }
             }
 
@@ -122,5 +130,30 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer.destroy() // SpeechRecognizer 리소스 해제
+    }
+
+    // 번역 api 연동
+    private fun postTranslate(text: String?) {
+        val mainService = getRetrofit().create(MainInterface::class.java)
+
+        mainService.translate(TranslateRequest(text)).enqueue(object: Callback<TranslateResponse>{
+            override fun onResponse(
+                call: Call<TranslateResponse>,
+                response: Response<TranslateResponse>
+            ) {
+                Log.d("Translate/ServerSuccess", response.message())
+                Log.d("postTranslate", response.body()?.translatedText.toString())
+
+                if (response.code() == 200) {
+                    Log.d("Translate/Success", "TranslatePost")
+
+                    translateText = response.body()?.translatedText.toString()
+                }
+            }
+
+            override fun onFailure(call: Call<TranslateResponse>, t: Throwable) {
+                Log.d("Translate/Failure", t.message.toString())
+            }
+        })
     }
 }
