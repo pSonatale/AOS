@@ -24,11 +24,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        checkRecordPermission()
         initBottomNavigation()
         setContentView(binding.root)
 
-//        checkRecordPermission()
-//
 //        binding.ivRecordOff.setOnClickListener {
 //            if (!isForegroundServiceRunning()) { // Foreground 서비스 실행 여부 체크
 //                Toast.makeText(this, "음성인식 시작", Toast.LENGTH_SHORT).show()
@@ -129,17 +128,17 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     // 음성 권한 처리
-//    private fun checkRecordPermission() {
-//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-//            != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-//                1
-//            )
-//        }
-//    }
+    private fun checkRecordPermission() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                1
+            )
+        }
+    }
 
 //    override fun onDestroy() {
 //        super.onDestroy()
