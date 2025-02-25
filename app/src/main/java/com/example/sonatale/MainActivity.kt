@@ -24,29 +24,30 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        initBottomNavigation()
         setContentView(binding.root)
 
-        checkRecordPermission()
-
-        binding.ivRecordOff.setOnClickListener {
-            if (!isForegroundServiceRunning()) { // Foreground 서비스 실행 여부 체크
-                Toast.makeText(this, "음성인식 시작", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, Foreground::class.java)
-                startService(intent)
-            }
-
-            binding.ivRecordOff.visibility = View.INVISIBLE
-            binding.ivRecordOn.visibility = View.VISIBLE
-        }
-
-        binding.ivRecordOn.setOnClickListener {
-            Toast.makeText(this@MainActivity, "음성인식 종료", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this@MainActivity, Foreground::class.java)
-            stopService(intent)
-
-            binding.ivRecordOff.visibility = View.VISIBLE
-            binding.ivRecordOn.visibility = View.INVISIBLE
-        }
+//        checkRecordPermission()
+//
+//        binding.ivRecordOff.setOnClickListener {
+//            if (!isForegroundServiceRunning()) { // Foreground 서비스 실행 여부 체크
+//                Toast.makeText(this, "음성인식 시작", Toast.LENGTH_SHORT).show()
+//                val intent = Intent(this, Foreground::class.java)
+//                startService(intent)
+//            }
+//
+//            binding.ivRecordOff.visibility = View.INVISIBLE
+//            binding.ivRecordOn.visibility = View.VISIBLE
+//        }
+//
+//        binding.ivRecordOn.setOnClickListener {
+//            Toast.makeText(this@MainActivity, "음성인식 종료", Toast.LENGTH_SHORT).show()
+//            val intent = Intent(this@MainActivity, Foreground::class.java)
+//            stopService(intent)
+//
+//            binding.ivRecordOff.visibility = View.VISIBLE
+//            binding.ivRecordOn.visibility = View.INVISIBLE
+//        }
     }
 
 //    private fun speechToText() {
@@ -128,17 +129,17 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     // 음성 권한 처리
-    private fun checkRecordPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.RECORD_AUDIO),
-                1
-            )
-        }
-    }
+//    private fun checkRecordPermission() {
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+//            != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            ActivityCompat.requestPermissions(
+//                this,
+//                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+//                1
+//            )
+//        }
+//    }
 
 //    override fun onDestroy() {
 //        super.onDestroy()
@@ -170,15 +171,15 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun isForegroundServiceRunning(): Boolean {
-        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
-            if (Foreground::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        return false
-    }
+//    private fun isForegroundServiceRunning(): Boolean {
+//        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+//        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+//            if (Foreground::class.java.name == service.service.className) {
+//                return true
+//            }
+//        }
+//        return false
+//    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -192,6 +193,33 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "권한이 거부되었습니다. 음성 인식이 제한됩니다.", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun initBottomNavigation() {
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.main_frm, HomeFragment())
+            .commitAllowingStateLoss()
+
+        binding.mainBottomNavBnv.setOnItemSelectedListener{ item ->
+            when (item.itemId) {
+
+                R.id.bottom_nav_home -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main_frm, HomeFragment())
+                        .commitAllowingStateLoss()
+                    return@setOnItemSelectedListener true
+                }
+
+                R.id.bottom_nav_book -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main_frm, TaleFragment())
+                        .commitAllowingStateLoss()
+                    return@setOnItemSelectedListener true
+                }
+            }
+            false
         }
     }
 }
