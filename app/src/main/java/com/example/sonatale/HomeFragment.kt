@@ -2,6 +2,8 @@ package com.example.sonatale
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -20,6 +22,8 @@ class HomeFragment : Fragment() {
     private lateinit var speechRecognizerIntent: Intent
 
     private var isListening = false // 음성 인식 상태 플래그
+
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,17 +51,19 @@ class HomeFragment : Fragment() {
                 binding.ivRecordOff.visibility = View.INVISIBLE
                 binding.ivRecordOn.visibility = View.VISIBLE
 
-                isListening = true
+                Log.d("BUTTON", "음성 인식 시작 버튼")
             }
         }
 
         binding.ivRecordOn.setOnClickListener {
-            stopListening()
+            if (isListening) {
+                stopListening()
 
-            binding.ivRecordOff.visibility = View.VISIBLE
-            binding.ivRecordOn.visibility = View.INVISIBLE
+                binding.ivRecordOff.visibility = View.VISIBLE
+                binding.ivRecordOn.visibility = View.INVISIBLE
 
-            isListening = false
+                Log.d("BUTTON", "음성 인식 중지 버튼")
+            }
         }
     }
 
@@ -109,9 +115,6 @@ class HomeFragment : Fragment() {
 
                 Log.d("STT", "음성 인식 오류 발생: $message")
 
-                isListening = false
-
-                restartListening()
             }
 
             override fun onResults(results: Bundle?) {
@@ -162,9 +165,9 @@ class HomeFragment : Fragment() {
     // 음성 인식 중지
     private fun stopListening() {
         if (isListening) {
+            isListening = false
             speechRecognizer.stopListening()
             Log.d("STT", "음성 인식 중지")
-            isListening = false
         }
     }
 
