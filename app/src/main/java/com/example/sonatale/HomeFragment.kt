@@ -44,8 +44,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         speechRecognize()
-
         onClickListener()
+        setBookTitle()
     }
 
     private fun onClickListener() {
@@ -179,6 +179,19 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer.destroy()
+    }
+
+    private fun setBookTitle() {
+        binding.btnDone.setOnClickListener {
+            val bootTitle = binding.etTitle.text.toString()
+            if (bootTitle != "") {
+                binding.layoutTitle.visibility = View.GONE
+                binding.ivRecordOff.visibility = View.VISIBLE
+                binding.infoRecord.visibility = View.VISIBLE
+            }
+            Log.d("dfdf", "dfdfsdf")
+        }
+
     }
 
     private fun getMusic(text: String?) {
