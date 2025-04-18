@@ -13,7 +13,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.sonatale.data.music.MusicResponse
 import com.example.sonatale.databinding.FragmentHomeBinding
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
@@ -39,8 +44,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         speechRecognize()
-
         onClickListener()
+        setBookTitle()
     }
 
     private fun onClickListener() {
@@ -73,7 +78,7 @@ class HomeFragment : Fragment() {
         speechRecognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR") // 한국어 설정
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true) // 부분 결과 활성화
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1000) // 무음 감지 시간 설정
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000) // 무음 감지 시간 설정
         }
 
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
@@ -174,5 +179,33 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer.destroy()
+    }
+
+    private fun setBookTitle() {
+        binding.btnDone.setOnClickListener {
+            val bootTitle = binding.etTitle.text.toString()
+            if (bootTitle != "") {
+                binding.layoutTitle.visibility = View.GONE
+                binding.ivRecordOff.visibility = View.VISIBLE
+                binding.infoRecord.visibility = View.VISIBLE
+            }
+            Log.d("dfdf", "dfdfsdf")
+        }
+
+    }
+
+    private fun getMusic(text: String?) {
+        val mainService = getRetrofit().create(MainInterface::class.java)
+
+        mainService.musicGet(text).enqueue(object : Callback<MusicResponse> {
+            override fun onResponse(call: Call<MusicResponse>, response: Response<MusicResponse>) {
+                Log.d("MusicGet/ServerSuccess", response.message())
+            }
+
+            override fun onFailure(call: Call<MusicResponse>, t: Throwable) {
+                Log.d("MusicGet/Failure", t.message.toString())
+            }
+
+        })
     }
 }

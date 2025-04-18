@@ -1,4 +1,4 @@
-package com.example.sonatale
+package com.example.sonatale.data.translate
 
 data class TranslateRequest(
     val text: String?

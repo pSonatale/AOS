@@ -1,15 +1,14 @@
 package com.example.sonatale
 
-import android.app.ActivityManager
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.sonatale.data.translate.TranslateRequest
+import com.example.sonatale.data.translate.TranslateResponse
 import com.example.sonatale.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Callback
