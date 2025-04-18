@@ -78,7 +78,7 @@ class HomeFragment : Fragment() {
         speechRecognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR") // 한국어 설정
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true) // 부분 결과 활성화
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1000) // 무음 감지 시간 설정
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000) // 무음 감지 시간 설정
         }
 
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
