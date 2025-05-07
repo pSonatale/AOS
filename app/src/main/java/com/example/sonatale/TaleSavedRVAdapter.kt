@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonatale.databinding.ItemTaleBookBinding
 
-class TaleSavedRVAdapter(private val tale: List<String>) : RecyclerView.Adapter<TaleSavedRVAdapter.ViewHolder>() {
+class TaleSavedRVAdapter(private val tale: List<String>, private val onItemClick: (String) -> Unit) : RecyclerView.Adapter<TaleSavedRVAdapter.ViewHolder>() {
 
 
     override fun onCreateViewHolder(
@@ -27,7 +27,9 @@ class TaleSavedRVAdapter(private val tale: List<String>) : RecyclerView.Adapter<
         RecyclerView.ViewHolder(binding.root) {
         fun bind(title: String) {
             binding.tvTitle.text = title
+            binding.root.setOnClickListener {
+                onItemClick(title)
+            }
         }
     }
-
 }
