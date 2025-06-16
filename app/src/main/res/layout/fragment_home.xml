@@ -46,10 +46,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:fontFamily="@font/pretendard_medium"
-            android:visibility="invisible"
             android:text="버튼을 눌러 녹음을 시작하면\n분위기에 맞는 음악이 나와요."
             android:textColor="@color/st_gray1"
-            android:textSize="14dp" />
+            android:textSize="14dp"
+            android:visibility="invisible" />
 
         <TextView
             android:id="@+id/tv_result"
@@ -84,13 +84,13 @@
         android:id="@+id/layout_title"
         android:layout_width="0dp"
         android:layout_height="180dp"
+        android:layout_marginHorizontal="20dp"
         android:layout_marginTop="-50dp"
         android:background="@drawable/rect_grayfill_nostroke_24radius"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingVertical="20dp"
-        android:layout_marginHorizontal="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/layout_info">
@@ -98,40 +98,41 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/pretendard_medium"
+            android:fontFamily="@font/laundrygothic_bold"
             android:text="책 제목을 입력해주세요"
-            android:textSize="20dp"
-            android:textColor="@color/black"/>
+            android:textColor="@color/black"
+            android:textSize="20dp" />
 
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/et_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/pretendard_medium"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/laundrygothic_regular"
             android:hint="제목을 입력해주세요" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_done"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="15dp"
             android:background="@drawable/rect_whitefill_nostroke_8radius"
-            android:fontFamily="@font/pretendard_medium"
+            android:fontFamily="@font/laundrygothic_bold"
             android:text="완료"
-            android:textColor="@color/black"/>
+            android:textColor="@color/black" />
 
     </LinearLayout>
 
-    <Button
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="14dp"
-        android:layout_marginBottom="50dp"
-        android:background="@drawable/rect_grayfill_nostroke_24radius"
-        android:text="다음 페이지"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+    <!--    <Button-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginHorizontal="14dp"-->
+    <!--        android:layout_marginBottom="50dp"-->
+    <!--        android:background="@drawable/rect_grayfill_nostroke_24radius"-->
+    <!--        android:text="다음 페이지"-->
+    <!--        android:textColor="@color/white"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

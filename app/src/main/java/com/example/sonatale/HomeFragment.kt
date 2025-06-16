@@ -1,6 +1,7 @@
 package com.example.sonatale
 
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,32 +12,35 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.sonatale.data.music.MusicResponse
 import com.example.sonatale.databinding.FragmentHomeBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
 
 class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
 
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var speechRecognizerIntent: Intent
-
-    private var isListening = false // 음성 인식 상태 플래그
+    private var mediaPlayer: MediaPlayer? = null
+    private var isListening = false
+    private var isRunning = true
 
     private val handler = Handler(Looper.getMainLooper())
+    private var bookTitle: String = ""
+    private val playedUris = mutableListOf<String>()
+
+    private var idleHandler = Handler(Looper.getMainLooper())
+    private var idleRunnable: Runnable? = null
+    private var lastRecognizedText: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentHomeBinding.inflate(layoutInflater)
-
         return binding.root
     }
 
@@ -51,161 +55,149 @@ class HomeFragment : Fragment() {
     private fun onClickListener() {
         binding.ivRecordOff.setOnClickListener {
             if (!isListening) {
-                startListening()
-
+                isListening = true
+                isRunning = true
+                startPeriodicSTT()
                 binding.ivRecordOff.visibility = View.INVISIBLE
                 binding.ivRecordOn.visibility = View.VISIBLE
-
-                Log.d("BUTTON", "음성 인식 시작 버튼")
             }
         }
 
         binding.ivRecordOn.setOnClickListener {
             if (isListening) {
+                isListening = false
+                isRunning = false
                 stopListening()
-
                 binding.ivRecordOff.visibility = View.VISIBLE
                 binding.ivRecordOn.visibility = View.INVISIBLE
-
-                Log.d("BUTTON", "음성 인식 중지 버튼")
             }
         }
     }
 
     private fun speechRecognize() {
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
-
         speechRecognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR") // 한국어 설정
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true) // 부분 결과 활성화
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000) // 무음 감지 시간 설정
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000)
         }
 
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {
-                // 음성 인식 준비 완료
-            }
-
-            override fun onBeginningOfSpeech() {
-                // 사용자가 말하기 시작 했을 때
-            }
-
-            override fun onRmsChanged(rmsdB: Float) {
-                // 음성 입력의 소리 크기가 변경될 때
-            }
-
-            override fun onBufferReceived(buffer: ByteArray?) {
-                // 음성 데이터를 받았을 때
-            }
-
-            override fun onEndOfSpeech() {
-                // 음성 인식이 끝났을 때
-            }
-
-            // 음성 인식 오류 발생
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
             override fun onError(error: Int) {
-
-                val message: String = when (error) {
-                    SpeechRecognizer.ERROR_AUDIO -> "오디오 에러"
-                    SpeechRecognizer.ERROR_CLIENT -> "클라이언트 에러"
-                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "퍼미션 없음"
-                    SpeechRecognizer.ERROR_NETWORK -> "네트워크 에러"
-                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "네트워크 타임아웃"
-                    SpeechRecognizer.ERROR_NO_MATCH -> "적당한 결과를 찾을 수 없음"
-                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RECOGNIZER가 바쁨"
-                    SpeechRecognizer.ERROR_SERVER -> "서버 에러"
-                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "시간 초과"
-                    else -> "알 수 없는 오류"
-                }
-
-                Log.d("STT", "음성 인식 오류 발생: $message")
-
+                Log.d("STT", "음성 인식 오류 발생: $error")
             }
 
-            override fun onResults(results: Bundle?) {
-                val matches = results?.getString(SpeechRecognizer.RESULTS_RECOGNITION)
-                if (!matches.isNullOrEmpty()) {
-                    val recognizedText = matches[0]
-                    binding.tvResult.text = recognizedText.toString()
-                    Log.d("STT", "음성 인식 텍스트: $recognizedText")
-                }
-                restartListening() // 인식 완료 후 다시 실행
-            }
+            override fun onResults(results: Bundle?) {}
 
             override fun onPartialResults(partialResults: Bundle?) {
-                // 부분 결과 처리
-                val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val matches =
+                    partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (!matches.isNullOrEmpty()) {
                     val partialText = matches[0]
-                    binding.tvResult.text = partialText // 실시간으로 UI 업데이트
+                    binding.tvResult.text = partialText
+                    lastRecognizedText = partialText
+                    resetIdleTimer()
                     Log.d("STT", "부분 인식된 텍스트: $partialText")
                 }
             }
 
-            override fun onEvent(eventType: Int, params: Bundle?) {
-                // 추가 이벤트 처리
-            }
-
+            override fun onEvent(eventType: Int, params: Bundle?) {}
         })
     }
 
-    // 음성 인식 시작
-    private fun startListening() {
-        if (!isListening) {
-            isListening = true
-            speechRecognizer.startListening(speechRecognizerIntent)
-            Log.d("STT", "음성 인식 시작")
+    private fun resetIdleTimer() {
+        idleRunnable?.let { idleHandler.removeCallbacks(it) }
+
+        idleRunnable = Runnable {
+            if (lastRecognizedText.isNotBlank()) {
+                lastRecognizedText = ""
+            }
+        }
+
+        idleHandler.postDelayed(idleRunnable!!, 2000L)
+    }
+
+    private fun getMusicUrlForEmotion(emotion: String) {
+        val api = getRetrofit().create(MainInterface::class.java)
+
+        api.getTTSList().enqueue(object : Callback<Map<String, String>> {
+            override fun onResponse(
+                call: Call<Map<String, String>>,
+                response: Response<Map<String, String>>
+            ) {
+                if (response.isSuccessful) {
+                    val musicMap = response.body()
+                    val relativePath = musicMap?.get(emotion) ?: return
+                    val fullUrl = "https://your.server.domain/$relativePath" // 실제 서버 URL로 수정
+                    playMusicFromUrl(fullUrl)
+                    playedUris.add(fullUrl)
+                    restartListening()
+                } else {
+                    Log.e("MusicListAPI", "목록 응답 실패")
+                }
+            }
+
+            override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+                Log.e("MusicListAPI", "API 호출 실패: ${t.message}")
+            }
+        })
+    }
+
+    private fun playMusicFromUrl(url: String) {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(url)
+            prepareAsync()
+            setOnPreparedListener { start() }
+            setOnCompletionListener { release() }
         }
     }
 
-    // 음성 인식 재시작
     private fun restartListening() {
         if (isListening) {
-            speechRecognizer.stopListening() // 현재 인식 종료
-            speechRecognizer.startListening(speechRecognizerIntent) // 다시 시작
-            Log.d("STT", "음성 인식 재시작")
+            speechRecognizer.stopListening()
+            speechRecognizer.startListening(speechRecognizerIntent)
         }
     }
 
-    // 음성 인식 중지
     private fun stopListening() {
         if (isListening) {
             isListening = false
+            isRunning = false
             speechRecognizer.stopListening()
-            Log.d("STT", "음성 인식 중지")
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        speechRecognizer.destroy()
     }
 
     private fun setBookTitle() {
         binding.btnDone.setOnClickListener {
-            val bootTitle = binding.etTitle.text.toString()
-            if (bootTitle != "") {
+            bookTitle = binding.etTitle.text.toString()
+            if (bookTitle.isNotBlank()) {
                 binding.layoutTitle.visibility = View.GONE
                 binding.ivRecordOff.visibility = View.VISIBLE
                 binding.infoRecord.visibility = View.VISIBLE
             }
-            Log.d("dfdf", "dfdfsdf")
         }
-
     }
 
-    private fun getMusic(text: String?) {
-        val mainService = getRetrofit().create(MainInterface::class.java)
-
-        mainService.musicGet(text).enqueue(object : Callback<MusicResponse> {
-            override fun onResponse(call: Call<MusicResponse>, response: Response<MusicResponse>) {
-                Log.d("MusicGet/ServerSuccess", response.message())
+    private fun startPeriodicSTT() {
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                if (isRunning) {
+                    speechRecognizer.startListening(speechRecognizerIntent)
+                    handler.postDelayed(this, 25000L)
+                }
             }
+        }, 0)
+    }
 
-            override fun onFailure(call: Call<MusicResponse>, t: Throwable) {
-                Log.d("MusicGet/Failure", t.message.toString())
-            }
-
-        })
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        speechRecognizer.destroy()
     }
 }
